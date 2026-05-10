@@ -1,0 +1,53 @@
+# Python virtual environment
+venv/
+env/
+.env
+.env.local
+.env.*.local
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Database files
+*.db
+*.sqlite
+
+# Node.js dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.production
+.env.development
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
