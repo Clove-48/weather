@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -34,3 +34,18 @@ class UserSettings(Base):
     theme = Column(Enum("light", "dark"), default="light")
     
     user = relationship("User", back_populates="settings")
+
+class History(Base):
+    __tablename__ = "history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    city_name = Column(String, nullable=False)
+    query_time = Column(DateTime, default=datetime.utcnow)
+    weather = Column(String)
+    temperature = Column(Float)
+    feels_like = Column(Float)
+    humidity = Column(Integer)
+    wind_speed = Column(Float)
+    
+    user = relationship("User")

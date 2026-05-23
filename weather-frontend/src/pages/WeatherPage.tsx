@@ -5,7 +5,7 @@ import { weatherAPI, favoritesAPI, roleplayAPI, WeatherData, FavoriteCity, Rolep
 import { Header } from '../components/Header';
 import { StreamAdvice } from '../components/StreamAdvice';
 import { WeatherBackground } from '../components/WeatherBackground';
-import { DesktopPet } from '../components/DesktopPet';
+import { DesktopPet3D } from '../components/DesktopPet3D';
 
 const getWeatherIcon = (weather: string, weatherDescription?: string): string => {
   const weatherLower = weather.toLowerCase();
@@ -173,9 +173,9 @@ export const WeatherPage = () => {
       <Header onLogout={handleLogout} currentPage="/" onNavigate={navigate} />
       
       {weatherData && (
-        <DesktopPet 
-          weather={weatherData.current.weather_description} 
-          temperature={weatherData.current.temperature} 
+        <DesktopPet3D 
+          weather={weatherData.current.weather_description}
+          temperature={weatherData.current.temperature}
         />
       )}
 

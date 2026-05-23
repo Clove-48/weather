@@ -77,3 +77,23 @@ class WeatherOut(BaseModel):
 
 class WeatherAdviceOut(BaseModel):
     advice: str
+
+class HistoryOut(BaseModel):
+    id: int
+    city_name: str
+    query_time: datetime
+    weather: Optional[str]
+    temperature: Optional[float]
+    feels_like: Optional[float]
+    humidity: Optional[int]
+    wind_speed: Optional[float]
+
+    class Config:
+        from_attributes = True
+
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None

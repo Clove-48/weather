@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User, FavoriteCity
-from app.schemas import FavoriteCityCreate, FavoriteCityOut
+from app.models import User, FavoriteCity, UserSettings
+from app.schemas import FavoriteCityCreate, FavoriteCityOut, WeatherOut
 from app.utils import get_current_user
-from typing import List
+from app.weather_service import WeatherService
+from typing import List, Optional
 
 router = APIRouter(prefix="/api/city")
 
@@ -67,3 +68,38 @@ def get_favorite_cities(
     ).order_by(FavoriteCity.created_at.desc()).all()
     
     return favorites
+
+@router.get("/weather")
+async def get_favorites_weather(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    units: Optional[str] = None
+):
+    try:
+        user_settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+        unit = units if units else (user_settings.temperature_unit if user_settings else "metric")
+        
+        favorites = db.query(FavoriteCity).filter(
+            FavoriteCity.user_id == current_user.id
+        ).order_by(FavoriteCity.created_at.desc()).all()
+        
+        results = []
+        for favorite in favorites:
+            try:
+                weather = await WeatherService.get_weather(favorite.city_name, unit)
+                results.append({
+                    "city_name": weather.city_name,
+                    "current": weather.current.dict(),
+                    "forecast": [day.dict() for day in weather.forecast[:3]] if weather.forecast else []
+                })
+            except Exception as e:
+                results.append({
+                    "city_name": favorite.city_name,
+                    "error": str(e),
+                    "current": None,
+                    "forecast": []
+                })
+        
+        return {"cities": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

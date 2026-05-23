@@ -143,6 +143,45 @@ class WeatherService:
     BASE_URL = "https://api.openweathermap.org/data/2.5"
     
     @staticmethod
+    async def search_cities(query: str) -> List[Dict[str, str]]:
+        search_cache_key = f"search_{query.lower()}"
+        if search_cache_key in cache:
+            return cache[search_cache_key]
+        
+        async with httpx.AsyncClient() as client:
+            params = {
+                "appid": settings.openweather_api_key,
+                "q": query,
+                "limit": 10
+            }
+            
+            try:
+                response = await client.get(
+                    f"{WeatherService.BASE_URL}/find",
+                    params=params
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    results = []
+                    for city in data.get("list", []):
+                        results.append({
+                            "id": city["id"],
+                            "name": city["name"],
+                            "country": city["sys"]["country"],
+                            "coord": {
+                                "lat": city["coord"]["lat"],
+                                "lon": city["coord"]["lon"]
+                            }
+                        })
+                    cache[search_cache_key] = results
+                    return results
+                else:
+                    return []
+            except Exception as e:
+                return []
+    
+    @staticmethod
     async def get_weather(city_name: str, units: str = "metric") -> WeatherOut:
         cache_key = f"{city_name.lower()}_{units}"
         

@@ -26,7 +26,64 @@ async def get_current_weather(
                 units = user_settings.temperature_unit
         
         weather = await WeatherService.get_weather(city, units)
+        
+        if current_user:
+            from app.models import History
+            history = History(
+                user_id=current_user.id,
+                city_name=weather.city_name,
+                weather=weather.current.weather,
+                temperature=weather.current.temperature,
+                feels_like=weather.current.feels_like,
+                humidity=weather.current.humidity,
+                wind_speed=weather.current.wind_speed
+            )
+            db.add(history)
+            db.commit()
+            
+            history_count = db.query(History).filter(History.user_id == current_user.id).count()
+            if history_count > 50:
+                oldest_records = db.query(History).filter(History.user_id == current_user.id).order_by(History.query_time).limit(history_count - 50).all()
+                for record in oldest_records:
+                    db.delete(record)
+                db.commit()
+        
         return weather
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/forecast")
+async def get_weather_forecast(
+    city: str = Query(..., description="City name to get forecast for"),
+    units: str = Query("metric", description="Temperature unit: metric or imperial"),
+    days: int = Query(7, description="Number of forecast days (max 7)"),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db)
+):
+    try:
+        if current_user:
+            user_settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+            if user_settings:
+                units = user_settings.temperature_unit
+        
+        weather = await WeatherService.get_weather(city, units)
+        forecast = weather.forecast[:min(days, 7)]
+        
+        return {
+            "city_name": weather.city_name,
+            "country": weather.country,
+            "forecast": forecast
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/search")
+async def search_cities(
+    q: str = Query(..., description="City name to search")
+):
+    try:
+        results = await WeatherService.search_cities(q)
+        return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.database import engine, Base
-from app.routes import auth, weather, favorites, settings
+from app.routes import auth, weather, favorites, settings, history
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,6 +26,7 @@ app.include_router(auth.router)
 app.include_router(weather.router)
 app.include_router(favorites.router)
 app.include_router(settings.router)
+app.include_router(history.router)
 
 @app.get("/")
 def read_root():
